@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Serviceanforderung</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #f0ede8;
+  --surface: #faf9f7;
+  --card: #ffffff;
+  --border: #ddd9d2;
+  --border2: #c8c3bb;
+  --accent: #1a1a2e;
+  --accent2: #e63946;
+  --accent3: #2d6a4f;
+  --muted: #8a8680;
+  --text: #1a1916;
+  --text2: #4a4845;
+  --radius: 12px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --topbar-h: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html { height: 100%; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100%;
+  overscroll-behavior: none;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--accent);
+  height: var(--topbar-h);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,.22);
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--mono);
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.3px;
+}
+.brand-dot {
+  width: 9px; height: 9px;
+  background: var(--accent2);
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: blink 2s ease infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.topbar-count {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: rgba(255,255,255,.45);
+}
+.topbar-count span { color: #43e97b; }
+
+/* ── SECTION TITLE ── */
+.section-title {
+  background: var(--accent);
+  padding: 10px 16px 12px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255,255,255,.65);
+  letter-spacing: .3px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+/* ── SEARCH BAR ── */
+.search-area {
+  padding: 12px 12px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.search-wrap {
+  flex: 1;
+  position: relative;
+}
+.search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  pointer-events: none;
+  color: var(--muted);
+}
+.search-input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 40px 12px 38px;
+  font-family: var(--sans);
+  font-size: 16px; /* 16px prevents iOS zoom */
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color .2s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); font-size: 14px; }
+.search-clear {
+  position: absolute;
+  right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: var(--border);
+  border: none;
+  color: var(--text2);
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.search-clear.show { display: flex; }
+
+.filter-select {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  min-width: 110px;
+}
+
+/* ── TOOLBAR ROW ── */
+.toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 8px;
+}
+.stats-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.stats-pill strong { color: var(--accent); }
+
+.toggle-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+  transition: opacity .2s;
+}
+.toggle-btn:active { opacity: .75; }
+.toggle-btn.active { background: var(--accent3); }
+
+/* ── CARDS LIST ── */
+.cards-list {
+  padding: 0 12px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.record-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: cardIn .18s ease both;
+  position: relative;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.card-pos {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(26,26,46,.07);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.card-art {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent2);
+  flex: 1;
+}
+.card-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.btn-edit, .btn-del {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-edit:active { background: #dbeafe; }
+.btn-del:active  { background: #fee2e2; }
+
+.card-desc {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.card-rem {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  line-height: 1.4;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.card-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+mark {
+  background: #fde68a;
+  color: #92400e;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── SHOW MORE / EMPTY ── */
+.show-more {
+  text-align: center;
+  padding: 14px;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.show-more a {
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--muted);
+}
+.empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: calc(24px + var(--safe-bottom));
+  right: 20px;
+  width: 56px; height: 56px;
+  background: var(--accent2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(230,57,70,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  transition: transform .2s, box-shadow .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.fab:active {
+  transform: scale(.93);
+  box-shadow: 0 2px 10px rgba(230,57,70,.35);
+}
+
+/* ── BOTTOM SHEET MODAL ── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(10,10,20,.5);
+  z-index: 300;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn .2s ease;
+}
+.overlay.show { display: flex; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 600px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp .25s cubic-bezier(.32,1.2,.64,1);
+  overflow: hidden;
+  padding-bottom: var(--safe-bottom);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+.modal-header {
+  background: var(--accent);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+.modal-close {
+  background: rgba(255,255,255,.14);
+  border: none;
+  color: white;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-body {
+  padding: 18px 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+}
+.form-group label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--sans);
+  font-size: 16px; /* prevent iOS zoom */
+  color: var(--text);
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color .2s;
+  resize: none;
+}
+.form-group input:focus,
+.form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { min-height: 80px; }
+
+.modal-footer {
+  padding: 14px 18px 18px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.btn-cancel {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-save {
+  flex: 2;
+  background: var(--accent);
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity .2s;
+}
+.btn-save:active { opacity: .8; }
+.btn-save.danger { background: var(--accent2); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: calc(88px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--accent);
+  color: white;
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  z-index: 500;
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity .25s, transform .25s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.green { background: var(--accent3); }
+.toast.red   { background: var(--accent2); }
+
+/* ── SORT BAR ── */
+.sort-bar {
+  display: flex;
+  gap: 6px;
+  padding: 0 12px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sort-bar::-webkit-scrollbar { display: none; }
+.sort-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .15s;
+}
+.sort-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    Serviceanforderung
+  </div>
+  <div class="topbar-count">
+    <span id="totalCount">0</span> Einträge
+  </div>
+</div>
+
+<!-- SECTION TITLE -->
+<div class="section-title">Teilebezeichnung</div>
+
+<!-- SEARCH -->
+<div class="search-area">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="search" autocomplete="off"
+      placeholder="Suchen…"
+      oninput="handleSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+  <select class="filter-select" id="filterCol" onchange="handleSearch(document.getElementById('searchInput').value)">
+    <option value="all">Alle</option>
+    <option value="position">Position</option>
+    <option value="article_number">Nummer</option>
+    <option value="description">Beschreibung</option>
+    <option value="remarks">Bemerkung</option>
+  </select>
+</div>
+
+<!-- SORT CHIPS -->
+<div class="sort-bar" id="sortBar">
+  <div class="sort-chip active" data-col="position" onclick="sortBy('position', this)">Position</div>
+  <div class="sort-chip" data-col="article_number" onclick="sortBy('article_number', this)">Nummer</div>
+  <div class="sort-chip" data-col="description" onclick="sortBy('description', this)">Beschreibung</div>
+  <div class="sort-chip" data-col="remarks" onclick="sortBy('remarks', this)">Bemerkung</div>
+</div>
+
+<!-- TOOLBAR ROW -->
+<div class="toolbar-row">
+  <div class="stats-pill" id="statsPill"><strong>0</strong> Einträge</div>
+  <button class="toggle-btn" id="toggleListBtn" onclick="toggleList()">☰ Alle anzeigen</button>
+</div>
+
+<!-- CARDS -->
+<div class="cards-list" id="cardsList">
+  <div class="empty-state"><div class="icon">⚙️</div><p>Datenbank wird geladen…</p></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()">+</button>
+
+<!-- ADD / EDIT MODAL -->
+<div class="overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">+ Neuen Eintrag hinzufügen</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>Position</label>
+        <input type="text" id="fPos" placeholder="z. B. 001, A-12…" inputmode="text">
+      </div>
+      <div class="form-group">
+        <label>Nummer</label>
+        <input type="text" id="fArt" placeholder="z. B. ART-00142…" inputmode="text">
+      </div>
+      <div class="form-group">
+        <label>Beschreibung</label>
+        <textarea id="fDesc" placeholder="Beschreibung des Artikels…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Bemerkung</label>
+        <textarea id="fRem" placeholder="Optionale Bemerkungen…" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-save" id="btnSave" onclick="saveRecord()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="overlay" id="delOverlay" onclick="closeDelOutside(event)">
+  <div class="modal" style="max-height:auto">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="background:var(--accent2)">
+      <div class="modal-title">Eintrag löschen</div>
+      <button class="modal-close" onclick="closeDel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:15px;color:var(--text2);line-height:1.6;padding-bottom:4px">
+        Eintrag <strong id="delPos"></strong> wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDel()">Abbrechen</button>
+      <button class="btn-save danger" onclick="confirmDelete()">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATABASE ─────────────────────────────────────────────────────────────────
+const DB_NAME = 'ServiceanforderungDB';
+const STORE   = 'records';
+const DB_VER  = 1;
+
+let db = null;
+let allRecords = [];
+let sortCol = 'position';
+let sortDir = 'asc';
+let listVisible = false;
+let pendingDeleteId = null;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) {
+        const store = d.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        ['position','article_number','description','remarks'].forEach(f =>
+          store.createIndex(f, f, { unique: false }));
+      }
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = e => rej(e.target.error);
+  });
+}
+function txStore(mode) { return db.transaction([STORE], mode).objectStore(STORE); }
+function dbGetAll() { return new Promise((res,rej)=>{ const r=txStore('readonly').getAll(); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); }); }
+function dbAdd(rec) { return new Promise((res,rej)=>{ const r=txStore('readwrite').add(rec); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); }); }
+function dbPut(rec) { return new Promise((res,rej)=>{ const r=txStore('readwrite').put(rec); r.onsuccess=e=>res(e.target.result); r.onerror=e=>rej(e.target.error); }); }
+function dbDelete(id){ return new Promise((res,rej)=>{ const r=txStore('readwrite').delete(id); r.onsuccess=()=>res(); r.onerror=e=>rej(e.target.error); }); }
+
+async function init() {
+  await openDB();
+  allRecords = await dbGetAll();
+  if (allRecords.length === 0) {
+    const samples = [
+      { position:'001', article_number:'ART-10001', description:'Edelstahlwinkel 40x40mm, Güte 316L', remarks:'Auf Lager' },
+      { position:'002', article_number:'ART-10002', description:'Sechskantschraube M8x25 verzinkt DIN 931', remarks:'Nachbestellen' },
+      { position:'003', article_number:'ART-10003', description:'Kabelkanal 500mm perforiert', remarks:'Lager B' },
+      { position:'004', article_number:'ART-10004', description:'Schaltschranktür-Zylinderschloss 22mm', remarks:'Kompatibilität prüfen' },
+      { position:'005', article_number:'ART-10005', description:'Gummidichtung 3mm EPDM-Profil', remarks:'Außeneinsatz' },
+    ];
+    for (const s of samples) await dbAdd(s);
+    allRecords = await dbGetAll();
+  }
+  render('');
+  updateCount(allRecords.length);
+}
+
+// ── SEARCH ───────────────────────────────────────────────────────────────────
+function handleSearch(query) {
+  const q = query.toLowerCase().trim();
+  document.getElementById('searchClear').classList.toggle('show', query.length > 0);
+  const col = document.getElementById('filterCol').value;
+
+  if (!q) { render(''); updateCount(allRecords.length, null); return; }
+
+  const filtered = allRecords.filter(r => {
+    const fields = col === 'all' ? ['position','article_number','description','remarks'] : [col];
+    return fields.some(f => (r[f]||'').toLowerCase().includes(q));
+  });
+  render(query, filtered);
+  updateCount(filtered.length, allRecords.length);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.remove('show');
+  handleSearch('');
+}
+
+// ── SORT ─────────────────────────────────────────────────────────────────────
+function sortBy(col, el) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  handleSearch(document.getElementById('searchInput').value);
+}
+
+function sortRecords(records) {
+  return [...records].sort((a,b) => {
+    const av = (a[sortCol]||'').toLowerCase();
+    const bv = (b[sortCol]||'').toLowerCase();
+    const na=parseFloat(av), nb=parseFloat(bv);
+    let cmp = (!isNaN(na)&&!isNaN(nb)) ? na-nb : av.localeCompare(bv);
+    return sortDir === 'desc' ? -cmp : cmp;
+  });
+}
+
+// ── TOGGLE ───────────────────────────────────────────────────────────────────
+function toggleList() {
+  listVisible = !listVisible;
+  const btn = document.getElementById('toggleListBtn');
+  btn.textContent = listVisible ? '✕ Ausblenden' : '☰ Alle anzeigen';
+  btn.classList.toggle('active', listVisible);
+  handleSearch(document.getElementById('searchInput').value);
+}
+
+// ── RENDER (cards) ───────────────────────────────────────────────────────────
+function render(query, records) {
+  const list = document.getElementById('cardsList');
+  const src = records !== undefined ? records : allRecords;
+  const sorted = sortRecords(src);
+  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  const isSearching = q.length > 0;
+
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">' +
+      (isSearching ? '🔍' : '📭') + '</div><p>' +
+      (isSearching ? 'Keine Einträge für <strong>' + esc(q) + '</strong>' :
+       'Noch keine Einträge. Tippe <strong>+</strong> zum Hinzufügen.') +
+      '</p></div>';
+    return;
+  }
+
+  const preview = (listVisible || isSearching) ? sorted : sorted.slice(0, 3);
+
+  list.innerHTML = preview.map((r, i) => `
+    <div class="record-card" style="animation-delay:${Math.min(i*0.03,0.25)}s">
+      <div class="card-header">
+        <span class="card-pos">${highlight(esc(r.position||'—'), q)}</span>
+        <span class="card-art">${highlight(esc(r.article_number||'—'), q)}</span>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="openEditModal(${r.id})">✏️</button>
+          <button class="btn-del"  onclick="openDelModal(${r.id}, '${esc(r.position||r.id)}')">🗑</button>
+        </div>
+      </div>
+      ${r.description ? `<div class="card-desc">${highlight(esc(r.description), q)}</div>` : ''}
+      ${r.remarks ? `<div class="card-rem">${highlight(esc(r.remarks), q)}</div>` : ''}
+    </div>`).join('');
+
+  if (!listVisible && !isSearching && sorted.length > 3) {
+    list.innerHTML += `<div class="show-more">
+      … und <strong>${sorted.length - 3}</strong> weitere Einträge &nbsp;
+      <a onclick="toggleList()">Alle anzeigen</a>
+    </div>`;
+  }
+}
+
+function updateCount(shown, total) {
+  document.getElementById('totalCount').textContent = allRecords.length;
+  const pill = document.getElementById('statsPill');
+  pill.innerHTML = total != null
+    ? `<strong>${shown}</strong> von ${total} Einträgen`
+    : `<strong>${shown}</strong> Eintrag${shown !== 1 ? 'e' : ''}`;
+}
+
+// ── ADD / EDIT ────────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = '+ Neuen Eintrag hinzufügen';
+  document.getElementById('btnSave').textContent = 'Speichern';
+  document.getElementById('editId').value = '';
+  ['fPos','fArt','fDesc','fRem'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openEditModal(id) {
+  const r = allRecords.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modalTitle').textContent = '✏️ Eintrag bearbeiten';
+  document.getElementById('btnSave').textContent = 'Aktualisieren';
+  document.getElementById('editId').value = id;
+  document.getElementById('fPos').value  = r.position || '';
+  document.getElementById('fArt').value  = r.article_number || '';
+  document.getElementById('fDesc').value = r.description || '';
+  document.getElementById('fRem').value  = r.remarks || '';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+async function saveRecord() {
+  const pos  = document.getElementById('fPos').value.trim();
+  const art  = document.getElementById('fArt').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const rem  = document.getElementById('fRem').value.trim();
+  const editId = document.getElementById('editId').value;
+  if (!pos && !art && !desc) { showToast('Mindestens ein Feld ausfüllen.', 'red'); return; }
+  const record = { position: pos, article_number: art, description: desc, remarks: rem };
+  if (editId) {
+    record.id = parseInt(editId);
+    await dbPut(record);
+    showToast('Aktualisiert ✓', 'green');
+  } else {
+    await dbAdd(record);
+    showToast('Hinzugefügt ✓', 'green');
+  }
+  allRecords = await dbGetAll();
+  closeModal();
+  handleSearch(document.getElementById('searchInput').value);
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function closeModalOutside(e) { if (e.target===document.getElementById('modalOverlay')) closeModal(); }
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function openDelModal(id, pos) {
+  pendingDeleteId = id;
+  document.getElementById('delPos').textContent = '#' + pos;
+  document.getElementById('delOverlay').classList.add('show');
+}
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  await dbDelete(pendingDeleteId);
+  allRecords = await dbGetAll();
+  closeDel();
+  handleSearch(document.getElementById('searchInput').value);
+  showToast('Gelöscht', 'red');
+  pendingDeleteId = null;
+}
+function closeDel() { document.getElementById('delOverlay').classList.remove('show'); }
+function closeDelOutside(e) { if (e.target===document.getElementById('delOverlay')) closeDel(); }
+
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') { closeModal(); closeDel(); }
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function highlight(text, query) {
+  if (!query) return text;
+  const safe = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp('('+safe+')','gi'),'<mark>$1</mark>');
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+init().catch(e => {
+  document.getElementById('cardsList').innerHTML =
+    '<div class="empty-state"><div class="icon">⚠️</div><p>Fehler: ' + e.message + '</p></div>';
+});
+</script>
+</body>
+</html>
