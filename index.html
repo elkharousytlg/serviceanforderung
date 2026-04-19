@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Serviceanforderung</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #f0ede8; --surface: #faf9f7; --card: #ffffff;
+  --border: #ddd9d2; --border2: #c8c3bb;
+  --accent: #1a1a2e; --accent2: #e63946; --accent3: #2d6a4f;
+  --muted: #8a8680; --text: #1a1916; --text2: #4a4845;
+  --radius: 12px;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --topbar-h: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { height: 100%; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100%; overscroll-behavior: none; }
+
+/* TOPBAR */
+.topbar { background: var(--accent); height: var(--topbar-h); padding: 0 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,.22); }
+.brand { display: flex; align-items: center; gap: 9px; font-family: var(--mono); font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -.3px; }
+.brand-dot { width: 9px; height: 9px; background: var(--accent2); border-radius: 50%; flex-shrink: 0; animation: blink 2s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-count { font-family: var(--mono); font-size: 12px; color: rgba(255,255,255,.45); }
+.topbar-count span { color: #43e97b; }
+.reload-btn { background: rgba(255,255,255,.1); border: none; color: rgba(255,255,255,.7); width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+.reload-btn:active { background: rgba(255,255,255,.2); }
+.reload-btn.spinning { animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* SECTION TITLE */
+.section-title { background: var(--accent); padding: 10px 16px 12px; font-family: var(--sans); font-size: 13px; font-weight: 400; color: rgba(255,255,255,.65); letter-spacing: .3px; border-top: 1px solid rgba(255,255,255,.07); }
+
+/* SEARCH */
+.search-area { padding: 12px 12px 0; display: flex; gap: 8px; align-items: center; }
+.search-wrap { flex: 1; position: relative; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 15px; pointer-events: none; color: var(--muted); }
+.search-input { width: 100%; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 40px 12px 38px; font-family: var(--sans); font-size: 16px; color: var(--text); outline: none; -webkit-appearance: none; transition: border-color .2s; }
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); font-size: 14px; }
+.search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: var(--border); border: none; color: var(--text2); width: 24px; height: 24px; border-radius: 50%; font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center; }
+.search-clear.show { display: flex; }
+.filter-select { background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 10px; font-family: var(--sans); font-size: 13px; color: var(--text); outline: none; -webkit-appearance: none; cursor: pointer; min-width: 110px; }
+
+/* SORT CHIPS */
+.sort-bar { display: flex; gap: 6px; padding: 10px 12px 8px; overflow-x: auto; scrollbar-width: none; }
+.sort-bar::-webkit-scrollbar { display: none; }
+.sort-chip { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--muted); cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all .15s; }
+.sort-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* TOOLBAR ROW */
+.toolbar-row { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 8px; }
+.stats-pill { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.stats-pill strong { color: var(--accent); }
+.toggle-btn { background: var(--accent); color: white; border: none; border-radius: 8px; padding: 8px 14px; font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer; min-height: 36px; transition: opacity .2s; }
+.toggle-btn:active { opacity: .75; }
+.toggle-btn.active { background: var(--accent3); }
+
+/* CARDS */
+.cards-list { padding: 0 12px 120px; display: flex; flex-direction: column; gap: 8px; }
+.record-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; animation: cardIn .18s ease both; }
+@keyframes cardIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+.card-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-pos { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); background: rgba(26,26,46,.07); padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+.card-art { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent2); flex: 1; }
+.card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.btn-edit, .btn-del { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: background .15s; }
+.btn-edit:active { background: #dbeafe; }
+.btn-del:active { background: #fee2e2; }
+.card-desc { font-size: 14px; color: var(--text); line-height: 1.5; }
+.card-rem { font-size: 13px; color: var(--muted); font-style: italic; line-height: 1.4; padding-top: 6px; border-top: 1px solid var(--border); }
+mark { background: #fde68a; color: #92400e; border-radius: 2px; padding: 0 1px; }
+
+/* SHOW MORE / EMPTY */
+.show-more { text-align: center; padding: 14px; font-size: 13px; color: var(--muted); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); }
+.show-more a { color: var(--accent); font-weight: 600; cursor: pointer; text-decoration: none; }
+.empty-state { text-align: center; padding: 50px 20px; color: var(--muted); }
+.empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; line-height: 1.6; }
+
+/* ERROR BANNER */
+.error-banner { background: rgba(230,57,70,.09); border: 1px solid rgba(230,57,70,.3); border-radius: 10px; margin: 10px 12px 0; padding: 12px 14px; font-size: 13px; color: var(--accent2); line-height: 1.5; display: none; }
+.error-banner.show { display: block; }
+
+/* FAB */
+.fab { position: fixed; bottom: calc(24px + var(--safe-bottom)); right: 20px; width: 56px; height: 56px; background: var(--accent2); color: white; border: none; border-radius: 50%; font-size: 28px; cursor: pointer; box-shadow: 0 4px 20px rgba(230,57,70,.45); display: flex; align-items: center; justify-content: center; z-index: 200; transition: transform .2s, box-shadow .2s; }
+.fab:active { transform: scale(.93); box-shadow: 0 2px 10px rgba(230,57,70,.35); }
+
+/* BOTTOM SHEET MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(10,10,20,.5); z-index: 300; display: none; align-items: flex-end; justify-content: center; animation: fadeIn .2s ease; }
+.overlay.show { display: flex; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.modal { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 600px; max-height: 92vh; display: flex; flex-direction: column; animation: slideUp .25s cubic-bezier(.32,1.2,.64,1); overflow: hidden; padding-bottom: var(--safe-bottom); }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 10px auto 0; flex-shrink: 0; }
+.modal-header { background: var(--accent); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.modal-title { font-family: var(--mono); font-size: 14px; font-weight: 600; color: white; }
+.modal-close { background: rgba(255,255,255,.14); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.modal-body { padding: 18px 18px 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
+.form-group label { display: block; font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 5px; }
+.form-group input, .form-group textarea { width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-family: var(--sans); font-size: 16px; color: var(--text); outline: none; -webkit-appearance: none; transition: border-color .2s; resize: none; }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { min-height: 80px; }
+.modal-footer { padding: 14px 18px 18px; display: flex; gap: 10px; flex-shrink: 0; }
+.btn-cancel { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 14px; font-family: var(--sans); font-size: 15px; font-weight: 600; color: var(--text2); cursor: pointer; }
+.btn-save { flex: 2; background: var(--accent); border: none; border-radius: 10px; padding: 14px; font-family: var(--sans); font-size: 15px; font-weight: 700; color: white; cursor: pointer; transition: opacity .2s; }
+.btn-save:active { opacity: .8; }
+.btn-save.danger { background: var(--accent2); }
+
+/* TOAST */
+.toast { position: fixed; bottom: calc(88px + var(--safe-bottom)); left: 50%; transform: translateX(-50%) translateY(8px); background: var(--accent); color: white; font-family: var(--mono); font-size: 13px; padding: 10px 20px; border-radius: 20px; box-shadow: 0 4px 16px rgba(0,0,0,.2); z-index: 500; opacity: 0; white-space: nowrap; transition: opacity .25s, transform .25s; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.green { background: var(--accent3); }
+.toast.red { background: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot"></div>
+    Serviceanforderung
+  </div>
+  <div class="topbar-right">
+    <div class="topbar-count"><span id="totalCount">0</span> Einträge</div>
+    <button class="reload-btn" id="reloadBtn" onclick="loadData()" title="Neu laden">↻</button>
+  </div>
+</div>
+
+<div class="section-title">Teilebezeichnung</div>
+
+<div class="error-banner" id="errorBanner"></div>
+
+<div class="search-area">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="search" autocomplete="off"
+      placeholder="Suchen…" oninput="handleSearch(this.value)">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+  </div>
+  <select class="filter-select" id="filterCol" onchange="handleSearch(document.getElementById('searchInput').value)">
+    <option value="all">Alle</option>
+    <option value="position">Position</option>
+    <option value="nummer">Nummer</option>
+    <option value="beschreibung">Beschreibung</option>
+    <option value="bemerkung">Bemerkung</option>
+  </select>
+</div>
+
+<div class="sort-bar">
+  <div class="sort-chip active" data-col="position" onclick="sortBy('position', this)">Position</div>
+  <div class="sort-chip" data-col="nummer" onclick="sortBy('nummer', this)">Nummer</div>
+  <div class="sort-chip" data-col="beschreibung" onclick="sortBy('beschreibung', this)">Beschreibung</div>
+  <div class="sort-chip" data-col="bemerkung" onclick="sortBy('bemerkung', this)">Bemerkung</div>
+</div>
+
+<div class="toolbar-row">
+  <div class="stats-pill" id="statsPill"><strong>0</strong> Einträge</div>
+  <button class="toggle-btn" id="toggleListBtn" onclick="toggleList()">☰ Alle anzeigen</button>
+</div>
+
+<div class="cards-list" id="cardsList">
+  <div class="empty-state"><div class="icon">⚙️</div><p>Verbindung wird hergestellt…</p></div>
+</div>
+
+<button class="fab" onclick="openAddModal()">+</button>
+
+<!-- ADD / EDIT MODAL -->
+<div class="overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">+ Neuen Eintrag hinzufügen</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label>Position</label>
+        <input type="number" id="fPos" placeholder="z. B. 1, 42…" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label>Nummer</label>
+        <input type="text" id="fNum" placeholder="z. B. ART-00142…">
+      </div>
+      <div class="form-group">
+        <label>Beschreibung</label>
+        <textarea id="fDesc" placeholder="Beschreibung des Artikels…" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Bemerkung</label>
+        <textarea id="fBem" placeholder="Optionale Bemerkungen…" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-save" id="btnSave" onclick="saveRecord()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="overlay" id="delOverlay" onclick="closeDelOutside(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header" style="background:var(--accent2)">
+      <div class="modal-title">Eintrag löschen</div>
+      <button class="modal-close" onclick="closeDel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:15px;color:var(--text2);line-height:1.6;padding-bottom:4px">
+        Eintrag <strong id="delPos"></strong> wirklich löschen?
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeDel()">Abbrechen</button>
+      <button class="btn-save danger" onclick="confirmDelete()">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const TURSO_URL   = 'https://serviceanforderung-elkharousy.aws-eu-west-1.turso.io/v2/pipeline';
+const TURSO_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY2MjMxMDEsImlkIjoiMDE5ZDljODUtYzcwMS03ZTA0LTgwZGMtNmJhOGViOTAxYTg4IiwicmlkIjoiYTlhYTMwMDItMmYyYy00NGIzLWFlZDctZjAzYTQ4MmIxNWE4In0.69TPVstxy592703Ek72UFBbVBSHxj-gy6cOpEaK0Hu8tt7-UxdZ0xn3Vr3fcjqqpM0_7N2bnMvUzOTtLJh0ACQ';
+const TABLE       = 'teilebezeichnung';
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let allRecords    = [];
+let sortCol       = 'position';
+let sortDir       = 'asc';
+let listVisible   = false;
+let pendingDeleteId = null;
+
+// ── TURSO HTTP API ────────────────────────────────────────────────────────────
+async function tursoQuery(sql, args = []) {
+  const body = {
+    requests: [
+      { type: 'execute', stmt: { sql, args } },
+      { type: 'close' }
+    ]
+  };
+  const res = await fetch(TURSO_URL, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + TURSO_TOKEN,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+  const json = await res.json();
+  if (json.results && json.results[0] && json.results[0].type === 'error') {
+    throw new Error(json.results[0].error.message);
+  }
+  return json.results[0].response.result;
+}
+
+function tursoArg(type, value) {
+  return { type, value: value === null || value === undefined ? null : String(value) };
+}
+
+// Parse Turso result rows into plain objects
+function parseRows(result) {
+  const cols = result.cols.map(c => c.name);
+  return result.rows.map(row =>
+    Object.fromEntries(cols.map((c, i) => [c, row[i].value]))
+  );
+}
+
+// ── ENSURE TABLE EXISTS ────────────────────────────────────────────────────────
+async function ensureTable() {
+  await tursoQuery(
+    `CREATE TABLE IF NOT EXISTS ${TABLE} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      position INTEGER,
+      nummer TEXT,
+      beschreibung TEXT,
+      bemerkung TEXT
+    )`
+  );
+}
+
+// ── LOAD DATA ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  setReloading(true);
+  hideError();
+  renderEmpty('⚙️', 'Verbindung wird hergestellt…');
+  try {
+    renderEmpty('🔧', 'Tabelle wird vorbereitet…');
+    await ensureTable();
+    renderEmpty('📥', 'Daten werden geladen…');
+    const result = await tursoQuery(`SELECT * FROM ${TABLE} ORDER BY position ASC`);
+    allRecords = parseRows(result);
+    render('');
+    updateCount(allRecords.length);
+  } catch(e) {
+    showError('Verbindungsfehler: ' + e.message);
+    renderEmpty('⚠️', 'Daten konnten nicht geladen werden.<br><small style="color:var(--muted)">' + e.message + '</small>');
+  }
+  setReloading(false);
+}
+
+function setReloading(on) {
+  document.getElementById('reloadBtn').classList.toggle('spinning', on);
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────────
+function handleSearch(query) {
+  const q = query.toLowerCase().trim();
+  document.getElementById('searchClear').classList.toggle('show', query.length > 0);
+  const col = document.getElementById('filterCol').value;
+
+  if (!q) { render(''); updateCount(allRecords.length, null); return; }
+
+  const fields = col === 'all' ? ['position','nummer','beschreibung','bemerkung'] : [col];
+  const filtered = allRecords.filter(r =>
+    fields.some(f => String(r[f]||'').toLowerCase().includes(q))
+  );
+  render(query, filtered);
+  updateCount(filtered.length, allRecords.length);
+}
+
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchClear').classList.remove('show');
+  handleSearch('');
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────────────
+function sortBy(col, el) {
+  sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
+  sortCol = col;
+  document.querySelectorAll('.sort-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  handleSearch(document.getElementById('searchInput').value);
+}
+
+function sortRecords(records) {
+  return [...records].sort((a, b) => {
+    const av = String(a[sortCol]||'').toLowerCase();
+    const bv = String(b[sortCol]||'').toLowerCase();
+    const na = parseFloat(av), nb = parseFloat(bv);
+    let cmp = (!isNaN(na) && !isNaN(nb)) ? na - nb : av.localeCompare(bv);
+    return sortDir === 'desc' ? -cmp : cmp;
+  });
+}
+
+// ── TOGGLE LIST ───────────────────────────────────────────────────────────────
+function toggleList() {
+  listVisible = !listVisible;
+  const btn = document.getElementById('toggleListBtn');
+  btn.textContent = listVisible ? '✕ Ausblenden' : '☰ Alle anzeigen';
+  btn.classList.toggle('active', listVisible);
+  handleSearch(document.getElementById('searchInput').value);
+}
+
+// ── RENDER CARDS ──────────────────────────────────────────────────────────────
+function render(query, records) {
+  const list   = document.getElementById('cardsList');
+  const src    = records !== undefined ? records : allRecords;
+  const sorted = sortRecords(src);
+  const q      = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  const searching = q.length > 0;
+
+  if (!sorted.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">' +
+      (searching ? '🔍' : '📭') + '</div><p>' +
+      (searching
+        ? 'Keine Einträge für <strong>' + esc(q) + '</strong>'
+        : 'Noch keine Einträge. Tippe <strong>+</strong> zum Hinzufügen.')
+      + '</p></div>';
+    return;
+  }
+
+  const preview = (listVisible || searching) ? sorted : sorted.slice(0, 3);
+
+  list.innerHTML = preview.map((r, i) => `
+    <div class="record-card" style="animation-delay:${Math.min(i*0.03,0.25)}s">
+      <div class="card-header">
+        <span class="card-pos">${highlight(esc(r.position||'—'), q)}</span>
+        <span class="card-art">${highlight(esc(r.nummer||'—'), q)}</span>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="openEditModal('${r.id}')">✏️</button>
+          <button class="btn-del"  onclick="openDelModal('${r.id}', '${esc(String(r.position||r.id))}')">🗑</button>
+        </div>
+      </div>
+      ${r.beschreibung ? `<div class="card-desc">${highlight(esc(r.beschreibung), q)}</div>` : ''}
+      ${r.bemerkung    ? `<div class="card-rem">${highlight(esc(r.bemerkung), q)}</div>`    : ''}
+    </div>`).join('');
+
+  if (!listVisible && !searching && sorted.length > 3) {
+    list.innerHTML += `<div class="show-more">
+      … und <strong>${sorted.length - 3}</strong> weitere
+      &nbsp;<a onclick="toggleList()">Alle anzeigen</a>
+    </div>`;
+  }
+}
+
+function renderEmpty(icon, msg) {
+  document.getElementById('cardsList').innerHTML =
+    `<div class="empty-state"><div class="icon">${icon}</div><p>${msg}</p></div>`;
+}
+
+function updateCount(shown, total) {
+  document.getElementById('totalCount').textContent = allRecords.length;
+  const pill = document.getElementById('statsPill');
+  pill.innerHTML = total != null
+    ? `<strong>${shown}</strong> von ${total} Einträgen`
+    : `<strong>${shown}</strong> Eintrag${shown !== 1 ? 'e' : ''}`;
+}
+
+// ── ADD / EDIT ────────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = '+ Neuen Eintrag hinzufügen';
+  document.getElementById('btnSave').textContent = 'Speichern';
+  document.getElementById('editId').value = '';
+  ['fPos','fNum','fDesc','fBem'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function openEditModal(id) {
+  const r = allRecords.find(x => String(x.id) === String(id));
+  if (!r) return;
+  document.getElementById('modalTitle').textContent = '✏️ Eintrag bearbeiten';
+  document.getElementById('btnSave').textContent = 'Aktualisieren';
+  document.getElementById('editId').value  = id;
+  document.getElementById('fPos').value    = r.position    || '';
+  document.getElementById('fNum').value    = r.nummer      || '';
+  document.getElementById('fDesc').value   = r.beschreibung|| '';
+  document.getElementById('fBem').value    = r.bemerkung   || '';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+async function saveRecord() {
+  const pos  = document.getElementById('fPos').value.trim();
+  const num  = document.getElementById('fNum').value.trim();
+  const desc = document.getElementById('fDesc').value.trim();
+  const bem  = document.getElementById('fBem').value.trim();
+  const editId = document.getElementById('editId').value;
+
+  if (!pos && !num && !desc) { showToast('Mindestens ein Feld ausfüllen.', 'red'); return; }
+
+  document.getElementById('btnSave').textContent = '…';
+
+  try {
+    if (editId) {
+      await tursoQuery(
+        `UPDATE ${TABLE} SET position=?, nummer=?, beschreibung=?, bemerkung=? WHERE id=?`,
+        [
+          tursoArg('integer', pos || null),
+          tursoArg('text', num || null),
+          tursoArg('text', desc || null),
+          tursoArg('text', bem || null),
+          tursoArg('integer', editId)
+        ]
+      );
+      showToast('Aktualisiert ✓', 'green');
+    } else {
+      await tursoQuery(
+        `INSERT INTO ${TABLE} (position, nummer, beschreibung, bemerkung) VALUES (?,?,?,?)`,
+        [
+          tursoArg('integer', pos || null),
+          tursoArg('text', num || null),
+          tursoArg('text', desc || null),
+          tursoArg('text', bem || null)
+        ]
+      );
+      showToast('Hinzugefügt ✓', 'green');
+    }
+    closeModal();
+    await loadData();
+  } catch(e) {
+    showToast('Fehler: ' + e.message, 'red');
+    document.getElementById('btnSave').textContent = editId ? 'Aktualisieren' : 'Speichern';
+  }
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+// ── DELETE ────────────────────────────────────────────────────────────────────
+function openDelModal(id, pos) {
+  pendingDeleteId = id;
+  document.getElementById('delPos').textContent = '#' + pos;
+  document.getElementById('delOverlay').classList.add('show');
+}
+
+async function confirmDelete() {
+  if (!pendingDeleteId) return;
+  try {
+    await tursoQuery(`DELETE FROM ${TABLE} WHERE id=?`, [tursoArg('integer', pendingDeleteId)]);
+    showToast('Gelöscht', 'red');
+    closeDel();
+    await loadData();
+  } catch(e) {
+    showToast('Fehler: ' + e.message, 'red');
+    closeDel();
+  }
+  pendingDeleteId = null;
+}
+
+function closeDel() { document.getElementById('delOverlay').classList.remove('show'); }
+function closeDelOutside(e) { if (e.target === document.getElementById('delOverlay')) closeDel(); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeDel(); }
+});
+
+// ── ERROR / HELPERS ───────────────────────────────────────────────────────────
+function showError(msg) {
+  const b = document.getElementById('errorBanner');
+  b.textContent = '⚠️ ' + msg;
+  b.classList.add('show');
+}
+function hideError() {
+  document.getElementById('errorBanner').classList.remove('show');
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const safe = query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return text.replace(new RegExp('('+safe+')','gi'),'<mark>$1</mark>');
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── START ─────────────────────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>
